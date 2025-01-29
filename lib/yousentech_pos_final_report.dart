@@ -1,5 +1,4 @@
 /// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+library yousentech_pos_final_report;
+
+export 'lib_module.dart';

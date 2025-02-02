@@ -29,10 +29,10 @@ dependencies:
     git:
       url: https://github.com/YousenTech-Flutter/yousentech_pos_shared_widgets.git
       ref: master
-  # yousentech_pos_invoice_printing:
-  #   git:
-  #     url: https://github.com/YousenTech-Flutter/yousentech_pos_invoice_printing.git
-  #     ref: master
+  yousentech_pos_invoice_printing:
+    git:
+      url: https://github.com/YousenTech-Flutter/yousentech_pos_invoice_printing.git
+      ref: master
   # yousentech_pos_loading_synchronizing_data:
   #   git:
   #     url: https://github.com/YousenTech-Flutter/yousentech_pos_loading_synchronizing_data.git

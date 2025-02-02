@@ -8,13 +8,6 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:pos_desktop/core/config/app_enums.dart';
-import 'package:pos_desktop/core/config/app_shared_pr.dart';
-import 'package:pos_desktop/features/FinalReport/data/final_report_info.dart';
-import 'package:pos_desktop/features/FinalReport/domain/final_report_service.dart';
-import 'package:pos_desktop/features/FinalReport/utils/a4_sesion_print_helper.dart';
-import 'package:pos_desktop/features/FinalReport/utils/printer_helper.dart';
-import 'package:pos_desktop/features/FinalReport/utils/show_pdf_session.dart';
 import 'package:pos_shared_preferences/helper/app_enum.dart';
 import 'package:pos_shared_preferences/models/final_report_info.dart';
 import 'package:pos_shared_preferences/models/pos_session/invoice_count.dart';
@@ -24,18 +17,9 @@ import 'package:printing/printing.dart';
 import 'package:shared_widgets/utils/response_result.dart';
 import 'package:yousentech_pos_final_report/src/domain/final_report_service.dart';
 import 'package:yousentech_pos_final_report/src/utils/a4_sesion_print_helper.dart';
-import 'package:yousentech_pos_final_report/src/utils/printer_helper.dart';
 import 'package:yousentech_pos_final_report/src/utils/show_pdf_session.dart';
 import 'package:yousentech_pos_invoice_printing/yousentech_pos_invoice_printing.dart';
-import '../../../core/utils/response_result.dart';
 import 'package:intl/intl.dart' as intl;
-
-import '../../invoice_printing/domain/invoice_printing_viewmodel.dart';
-
-import '../../invoices/domain/invoice_operations/pending_invoice_viewmodel.dart';
-import '../../printing/domain/app_connected_printers/connected_printer_viewmodel.dart';
-import '../../session/data/invoice_count.dart';
-import '../../session/data/posSession.dart';
 import '../utils/roll_sesion_print_helper.dart';
 
 class FinalReportController extends GetxController {
@@ -101,15 +85,16 @@ class FinalReportController extends GetxController {
       topSession = finalReportInfo!.topSession ?? [];
       lessProductsBasedInAvailableQty =
           finalReportInfo!.lessProductsBasedInAvailableQty ?? [];
-      InvoicePendingController invoicePendingController =
-          Get.isRegistered<InvoicePendingController>()
-              ? Get.find<InvoicePendingController>()
-              : Get.put(InvoicePendingController());
-      ResponseResult resultCount =
-          await invoicePendingController.countInvoicesByType();
-      if (resultCount.status) {
-        countInvoices = resultCount.data;
-      }
+      // TODO :=====
+      // InvoicePendingController invoicePendingController =
+      //     Get.isRegistered<InvoicePendingController>()
+      //         ? Get.find<InvoicePendingController>()
+      //         : Get.put(InvoicePendingController());
+      // ResponseResult resultCount =
+      //     await invoicePendingController.countInvoicesByType();
+      // if (resultCount.status) {
+      //   countInvoices = resultCount.data;
+      // }
       spotSaleOrder.clear();
       spotSaleOrder.add(const FlSpot(0.0, 0.0));
       totalOrdrestital.clear();
@@ -316,30 +301,31 @@ class FinalReportController extends GetxController {
     Printer? printer;
 
     late Printer defaultPrinter;
-    ConnectedPrinterController printingController =
-        Get.isRegistered<ConnectedPrinterController>()
-            ? Get.find<ConnectedPrinterController>()
-            : Get.put(ConnectedPrinterController());
-    if (printingController.connectedPrinterList.isNotEmpty) {
-      String? printerName = printingController.connectedPrinterList
-          .firstWhere((elem) => elem.paperType == format)
-          .printerName;
-      printer = printingController.systemPrinterList
-          .firstWhere((elem) => elem.name == printerName);
-    } else {
-      defaultPrinter = await PrintHelper.setDefaultPrinter();
-    }
-    Random random = Random();
-    var randomnum = 1000 + random.nextInt(9000);
-    result = await Printing.directPrintPdf(
-      format: pdfFormat,
-      printer: printer ?? defaultPrinter,
-      onLayout: buildPDFLayout(
-        format: pdfFormat,
-      ),
-      name:
-          "${SharedPr.currentPosObject!.name}_${randomnum}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
-    );
+    // TODO :=====
+    // ConnectedPrinterController printingController =
+    //     Get.isRegistered<ConnectedPrinterController>()
+    //         ? Get.find<ConnectedPrinterController>()
+    //         : Get.put(ConnectedPrinterController());
+    // if (printingController.connectedPrinterList.isNotEmpty) {
+    //   String? printerName = printingController.connectedPrinterList
+    //       .firstWhere((elem) => elem.paperType == format)
+    //       .printerName;
+    //   printer = printingController.systemPrinterList
+    //       .firstWhere((elem) => elem.name == printerName);
+    // } else {
+    //   defaultPrinter = await PrintHelper.setDefaultPrinter();
+    // }
+    // Random random = Random();
+    // var randomnum = 1000 + random.nextInt(9000);
+    // result = await Printing.directPrintPdf(
+    //   format: pdfFormat,
+    //   printer: printer ?? defaultPrinter,
+    //   onLayout: buildPDFLayout(
+    //     format: pdfFormat,
+    //   ),
+    //   name:
+    //       "${SharedPr.currentPosObject!.name}_${randomnum}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}",
+    // );
   }
 
   closePrintDiloge() {

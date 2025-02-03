@@ -2,4 +2,4 @@
 
 library yousentech_pos_final_report;
 
-export 'src/presentation/views/print_session.dart';
+export 'final_report/src/presentation/views/print_session.dart';

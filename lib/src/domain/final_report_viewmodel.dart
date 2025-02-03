@@ -18,6 +18,7 @@ import 'package:shared_widgets/utils/response_result.dart';
 import 'package:yousentech_pos_final_report/src/domain/final_report_service.dart';
 import 'package:yousentech_pos_final_report/src/utils/a4_sesion_print_helper.dart';
 import 'package:yousentech_pos_final_report/src/utils/show_pdf_session.dart';
+import 'package:yousentech_pos_invoice_printing/print_invoice/domain/invoice_printing_viewmodel.dart';
 import 'package:yousentech_pos_invoice_printing/yousentech_pos_invoice_printing.dart';
 import 'package:intl/intl.dart' as intl;
 import '../utils/roll_sesion_print_helper.dart';

@@ -1,8 +1,6 @@
 // ignore_for_file: unused_local_variable, empty_catches
 
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -10,14 +8,13 @@ import 'package:intl/intl.dart' as intl;
 import 'package:pos_shared_preferences/pos_shared_preferences.dart';
 import 'package:shared_widgets/config/app_invoice_styles.dart';
 import 'package:shared_widgets/utils/parse_numbers.dart';
-import 'package:yousentech_pos_invoice_printing/yousentech_pos_invoice_printing.dart';
+import 'package:yousentech_pos_invoice_printing/print_invoice/utils/roll_print_helper2.dart';
 
 Future<pw.Document> rollSesstionPrint(
     {required List sessionInfo,
     required List invoices,
     required List refund,
     required PdfPageFormat format}) async {
-  print("======================================================");
   // PrintingInvoiceController printingController =
   //     Get.put(PrintingInvoiceController());
 

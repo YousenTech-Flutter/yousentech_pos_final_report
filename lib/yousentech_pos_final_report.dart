@@ -1,4 +1,5 @@
-/// A Calculator.
+// ignore_for_file: unnecessary_library_name
+
 library yousentech_pos_final_report;
 
-export 'lib_module.dart';
+export 'src/presentation/views/print_session.dart';

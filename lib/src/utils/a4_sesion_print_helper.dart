@@ -7,7 +7,7 @@ import 'package:pos_shared_preferences/models/customer_model.dart';
 import 'package:pos_shared_preferences/pos_shared_preferences.dart';
 import 'package:shared_widgets/config/app_invoice_colors.dart';
 import 'package:shared_widgets/config/app_invoice_styles.dart';
-import 'package:yousentech_pos_invoice_printing/yousentech_pos_invoice_printing.dart';
+import 'package:yousentech_pos_invoice_printing/print_invoice/domain/invoice_printing_viewmodel.dart';
 
 import '../presentation/widgets/details_table.dart';
 import '../presentation/widgets/info_total.dart';

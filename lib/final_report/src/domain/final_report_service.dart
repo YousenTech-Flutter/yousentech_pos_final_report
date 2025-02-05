@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'package:pos_shared_preferences/helper/app_enum.dart';
 import 'package:pos_shared_preferences/models/final_report_info.dart';
 import 'package:pos_shared_preferences/models/sale_order.dart';

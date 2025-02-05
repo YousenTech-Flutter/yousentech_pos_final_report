@@ -1,5 +1,3 @@
-
-
 import 'package:pos_shared_preferences/helper/app_enum.dart';
 import 'package:pos_shared_preferences/models/final_report_info.dart';
 import 'package:pos_shared_preferences/models/sale_order.dart';
@@ -9,7 +7,7 @@ import 'package:shared_widgets/shared_widgets/handle_exception_helper.dart';
 import 'package:shared_widgets/shared_widgets/odoo_connection_helper.dart';
 import 'package:yousentech_pos_final_report/final_report/src/domain/final_report_repository.dart';
 import 'package:yousentech_pos_local_db/yousentech_pos_local_db.dart';
-
+import 'package:flutter/foundation.dart';
 class FinalReportService extends FinalReportRepository {
   GeneralLocalDB<SaleOrderInvoice>? _generalLocalDBInstance;
   static FinalReportService? invoiceOperationService;

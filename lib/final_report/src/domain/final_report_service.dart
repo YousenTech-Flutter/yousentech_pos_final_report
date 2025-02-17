@@ -10,6 +10,7 @@ import 'package:shared_widgets/shared_widgets/odoo_connection_helper.dart';
 import 'package:yousentech_pos_final_report/final_report/src/domain/final_report_repository.dart';
 import 'package:yousentech_pos_local_db/yousentech_pos_local_db.dart';
 import 'package:flutter/foundation.dart';
+
 class FinalReportService extends FinalReportRepository {
   GeneralLocalDB<SaleOrderInvoice>? _generalLocalDBInstance;
   static FinalReportService? invoiceOperationService;
@@ -408,8 +409,51 @@ class FinalReportService extends FinalReportRepository {
         ORDER BY available_qty ASC 
         LIMIT 3;
       ''');
-
-      var results10 = await DbHelper.db!.rawQuery('''
+      var sqliteVersion =
+          await DbHelper.db!.rawQuery("SELECT sqlite_version()", null);
+      var results10;
+      if ((sqliteVersion[0]["sqlite_version()"]) == '3.32.2') {
+        results10 = await DbHelper.db!.rawQuery('''
+  SELECT 
+    SUBSTR(json_data.value, 
+           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
+           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) AS id,
+    SUM(CAST(SUBSTR(json_data.value, 
+           INSTR(json_data.value, '"amount":') + LENGTH('"amount":'), 
+           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"amount":') + LENGTH('"amount":')), ',') - 1) AS REAL)) - 
+    CASE 
+      WHEN aj.type = 'cash' THEN SUM(change) 
+      ELSE 0.0 
+    END AS total_amount,
+    aj.name AS account_journal_name,
+    aj.type AS type,
+    saleorderinvoice.move_type,
+    saleorderinvoice.payment_ids,
+    COUNT(saleorderinvoice.id) AS invoice_count
+  FROM 
+    saleorderinvoice,
+    json_each(invoice_chosen_payment) AS json_data
+  JOIN 
+    accountjournal aj 
+    ON SUBSTR(json_data.value, 
+           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
+           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) = aj.id
+  WHERE 
+    session_number = ?
+    AND state IN (?, ?)
+    ${isSessionList ? "AND payment_ids != 'null'" : "AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}    
+  GROUP BY 
+    SUBSTR(json_data.value, 
+           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
+           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1), 
+    aj.name, saleorderinvoice.move_type;
+''', [
+          isSessionList ? id : SharedPr.currentSaleSession?.id,
+          InvoiceState.posted.name,
+          InvoiceState.saleOrder.name,
+        ]);
+      } else {
+        results10 = await DbHelper.db!.rawQuery('''
           SELECT 
             json_extract(json_data.value, '\$.id') AS id,
             SUM(CAST(json_extract(json_data.value, '\$.amount') AS REAL)) - 
@@ -430,10 +474,11 @@ class FinalReportService extends FinalReportRepository {
           ${isSessionList ? "AND payment_ids != 'null'" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}    
           GROUP BY json_extract(json_data.value, '\$.id'), aj.name, move_type;
         ''', [
-        isSessionList ? id : SharedPr.currentSaleSession?.id,
-        InvoiceState.posted.name,
-        InvoiceState.saleOrder.name,
-      ]);
+          isSessionList ? id : SharedPr.currentSaleSession?.id,
+          InvoiceState.posted.name,
+          InvoiceState.saleOrder.name,
+        ]);
+      }
 
       Map<int, Map<String, dynamic>> maxQtyByCategory = {};
 

@@ -290,9 +290,9 @@ class FinalReportService extends FinalReportRepository {
       // Retrieve the date filter SQL clause based on the selected key
       String dateFilter = getDateFilter(dateFilterKey);
       bool isSportJsonExtract = await DbHelper.testJsonExtract();
-      if(kDebugMode){
+      if (kDebugMode) {
         print("isSportJsonExtract $isSportJsonExtract");
-      } 
+      }
       var results = await DbHelper.db!.rawQuery('''
         SELECT 
           SUM(CASE WHEN move_type = 'out_refund' THEN total_price ELSE 0.0 END) AS total_out_refund,
@@ -421,7 +421,8 @@ class FinalReportService extends FinalReportRepository {
       ''');
 
       if (!isSportJsonExtract) {
-        results10 = await fetchUnlinkedPayment(id: id , isSessionList: isSessionList , dateFilterKey:dateFilterKey);
+        results10 = await fetchUnlinkedPayment(
+            id: id, isSessionList: isSessionList, dateFilterKey: dateFilterKey);
       } else {
         results10 = await DbHelper.db!.rawQuery('''
           SELECT 
@@ -490,7 +491,8 @@ class FinalReportService extends FinalReportRepository {
     }
   }
 
-  Future<dynamic> getCountSessionDraftInvoicesNeedProcess({int? ssessionID}) async {
+  Future<dynamic> getCountSessionDraftInvoicesNeedProcess(
+      {int? ssessionID}) async {
     try {
       var result = await OdooProjectOwnerConnectionHelper.odooClient.callKw({
         'model': OdooModels.syncInvoiceTransit,
@@ -508,21 +510,39 @@ class FinalReportService extends FinalReportRepository {
     }
   }
 
-  Future fetchInvoicePaymentOptions({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
+  Future fetchInvoicePaymentOptions(
+      {String dateFilterKey = 'week',
+      bool isSessionList = false,
+      int? id}) async {
     print("fetchInvoicePaymentOptions##########");
     // Fetch raw data
-    List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
+    List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery(
+      '''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
     FROM saleorderinvoice
     WHERE session_number = ?
       AND state IN (?, ?)
       ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = ?"}
-  ''', [
-      isSessionList ? id : SharedPr.currentSaleSession?.id,
-      InvoiceState.posted.name,
-      InvoiceState.saleOrder.name,
-      dateFilterKey
-    ]);
+  ''',
+      isSessionList
+          ? [
+              id,
+              InvoiceState.posted.name,
+              InvoiceState.saleOrder.name,
+            ]
+          : [
+              SharedPr.currentSaleSession?.id,
+              InvoiceState.posted.name,
+              InvoiceState.saleOrder.name,
+              dateFilterKey,
+            ],
+      // [
+      //     isSessionList ? id : SharedPr.currentSaleSession?.id,
+      //     InvoiceState.posted.name,
+      //     InvoiceState.saleOrder.name,
+      //     dateFilterKey
+      //   ]
+    );
     print("rawInvoices $rawInvoices");
     // List<Map<String, dynamic>> processedResults = [];
     Map<int, Map<String, dynamic>> resultMap = {};
@@ -573,7 +593,10 @@ class FinalReportService extends FinalReportRepository {
     return resultMap.values.toList();
   }
 
-  Future fetchUnlinkedPayment({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
+  Future fetchUnlinkedPayment(
+      {String dateFilterKey = 'week',
+      bool isSessionList = false,
+      int? id}) async {
     // Fetch raw invoices
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date, payment_ids, change
@@ -637,7 +660,7 @@ class FinalReportService extends FinalReportRepository {
         }
       }
     }
-    
+
     return resultMap.values.toList();
   }
 }

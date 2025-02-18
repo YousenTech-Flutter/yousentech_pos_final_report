@@ -565,7 +565,7 @@ class FinalReportService extends FinalReportRepository {
     FROM saleorderinvoice
     WHERE session_number = ?
       AND state IN (?, ?)
-      ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = $dateFilter"}
+      ${isSessionList ? "" : " AND strftime('%Y-%W', REPLACE(create_date, 'T', ' ')) = ?"}
   ''',
     isSessionList?  [
         id ,

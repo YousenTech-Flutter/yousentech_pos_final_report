@@ -304,37 +304,24 @@ class FinalReportService extends FinalReportRepository {
       if (!isSportJsonExtract) {
         results2 = await DbHelper.db!.rawQuery('''
   SELECT 
-    SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) AS id,
-    SUM(CAST(SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"amount":') + LENGTH('"amount":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"amount":') + LENGTH('"amount":')), ',') - 1) AS REAL)) - 
-    CASE 
-      WHEN aj.type = 'cash' THEN SUM(change) 
-      ELSE 0.0 
-    END AS total_amount,
+    ip.payment_id AS id,
+    SUM(ip.amount) - CASE WHEN aj.type = 'cash' THEN SUM(ip.change) ELSE 0.0 END AS total_amount,
     aj.name AS account_journal_name,
     aj.type AS type,
-    saleorderinvoice.move_type,
-    COUNT(saleorderinvoice.id) AS invoice_count
+    soi.move_type,
+    COUNT(soi.id) AS invoice_count
   FROM 
-    saleorderinvoice,
-    json_each(invoice_chosen_payment) AS json_data
+    saleorderinvoice soi
   JOIN 
-    accountjournal aj 
-    ON SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) = aj.id
+    invoice_payments ip ON soi.id = ip.invoice_id
+  JOIN 
+    accountjournal aj ON ip.payment_id = aj.id
   WHERE 
-    session_number = ?
-    AND state IN (?, ?)
+    soi.session_number = ?
+    AND soi.state IN (?, ?)
     ${isSessionList ? "" : "AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}    
   GROUP BY 
-    SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1), 
-    aj.name, saleorderinvoice.move_type;
+    ip.payment_id, aj.name, soi.move_type;
 ''', [
           isSessionList ? id : SharedPr.currentSaleSession?.id,
           InvoiceState.posted.name,

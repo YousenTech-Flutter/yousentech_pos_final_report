@@ -551,12 +551,13 @@ class FinalReportService extends FinalReportRepository {
     FROM saleorderinvoice
     WHERE session_number = ?
       AND state IN (?, ?)
-      ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = $dateFilter"}
+      ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = ?"}
   ''',
       [
         isSessionList ? id : SharedPr.currentSaleSession?.id,
         InvoiceState.posted.name,
         InvoiceState.saleOrder.name,
+        testss[0].values
       ],
     );
     List<Map<String, dynamic>> rawInvoices3 = await DbHelper.db!.rawQuery(

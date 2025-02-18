@@ -290,9 +290,6 @@ class FinalReportService extends FinalReportRepository {
       // Retrieve the date filter SQL clause based on the selected key
       String dateFilter = getDateFilter(dateFilterKey);
       bool isSportJsonExtract = await DbHelper.testJsonExtract();
-      if (kDebugMode) {
-        print("isSportJsonExtract $isSportJsonExtract");
-      }
       var results = await DbHelper.db!.rawQuery('''
         SELECT 
           SUM(CASE WHEN move_type = 'out_refund' THEN total_price ELSE 0.0 END) AS total_out_refund,
@@ -518,12 +515,10 @@ class FinalReportService extends FinalReportRepository {
       bool isSessionList = false,
       int? id,
       String? dateFilter}) async {
-    print("fetchInvoicePaymentOptions##########");
     // Fetch raw data
     var dateFilterFormat = await DbHelper.db!.rawQuery('''
   SELECT $dateFilter AS time
 ''');
-    print("dateFilterFormat $dateFilterFormat");
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery(
       '''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
@@ -555,7 +550,6 @@ class FinalReportService extends FinalReportRepository {
       if (jsonString != '') {
         payments = jsonDecode(jsonString);
       }
-      print("payments $payments");
       for (var payment in payments) {
         int paymentId = payment['id'];
         double amount = double.tryParse(payment['amount'].toString()) ?? 0.0;
@@ -590,7 +584,6 @@ class FinalReportService extends FinalReportRepository {
         }
       }
     }
-    print("fetchInvoicePaymentOptions values ${resultMap.values.toList()}");
     return resultMap.values.toList();
   }
 
@@ -600,11 +593,9 @@ class FinalReportService extends FinalReportRepository {
       int? id,
       String? dateFilter}) async {
     // Fetch raw invoices
-    print("fetchUnlinkedPayment=======");
     var dateFilterFormat = await DbHelper.db!.rawQuery('''
   SELECT $dateFilter AS time
 ''');
-print("dateFilterFormat $dateFilterFormat");
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery(
       '''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date, payment_ids, change
@@ -629,7 +620,6 @@ print("dateFilterFormat $dateFilterFormat");
 
     // Map to store aggregated results by payment ID
     Map<int, Map<String, dynamic>> resultMap = {};
-    print("rawInvoices $rawInvoices");
     for (var invoice in rawInvoices) {
       // Parse invoice_chosen_payment (stored as a JSON string)
       String jsonString = invoice['invoice_chosen_payment'] ?? '';
@@ -676,7 +666,6 @@ print("dateFilterFormat $dateFilterFormat");
         }
       }
     }
-    print("resultMap.values.toList() ${resultMap.values.toList()}");
     return resultMap.values.toList();
   }
 }

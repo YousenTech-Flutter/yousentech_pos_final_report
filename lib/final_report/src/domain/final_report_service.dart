@@ -303,38 +303,28 @@ class FinalReportService extends FinalReportRepository {
       ''');
       if (!isSportJsonExtract) {
         results2 = await DbHelper.db!.rawQuery('''
-  SELECT 
-    SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) AS id,
-    SUM(CAST(SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"amount":') + LENGTH('"amount":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"amount":') + LENGTH('"amount":')), ',') - 1) AS REAL)) - 
-    CASE 
-      WHEN aj.type = 'cash' THEN SUM(change) 
-      ELSE 0.0 
-    END AS total_amount,
+SELECT
+    SUBSTR(invoice_chosen_payment, 
+           INSTR(invoice_chosen_payment, '"id":') + LENGTH('"id":')) AS id,
+    SUM(CAST(SUBSTR(invoice_chosen_payment, 
+                    INSTR(invoice_chosen_payment, '"amount":') + LENGTH('"amount":'), 
+                    INSTR(invoice_chosen_payment, '}', INSTR(invoice_chosen_payment, '"amount":')) - INSTR(invoice_chosen_payment, '"amount":') - LENGTH('"amount":')) AS REAL)) - 
+    CASE WHEN aj.type = 'cash' THEN SUM(saleorderinvoice.change) ELSE 0.0 END AS total_amount,
     aj.name AS account_journal_name,
     aj.type AS type,
     saleorderinvoice.move_type,
     COUNT(saleorderinvoice.id) AS invoice_count
-  FROM 
-    saleorderinvoice,
-    (SELECT value FROM invoice_chosen_payment) AS json_data
-  JOIN 
-    accountjournal aj 
-    ON SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) = aj.id
-  WHERE 
+FROM
+    saleorderinvoice
+JOIN
+    accountjournal aj ON SUBSTR(invoice_chosen_payment, 
+                                 INSTR(invoice_chosen_payment, '"id":') + LENGTH('"id":')) = aj.id
+WHERE 
     session_number = ?
     AND state IN (?, ?)
-    ${isSessionList ? "" : "AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}    
-  GROUP BY 
-    SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1), 
-    aj.name, saleorderinvoice.move_type;
+    ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}
+GROUP BY 
+    id, aj.name, saleorderinvoice.move_type;
 ''', [
           isSessionList ? id : SharedPr.currentSaleSession?.id,
           InvoiceState.posted.name,
@@ -366,7 +356,7 @@ class FinalReportService extends FinalReportRepository {
           InvoiceState.saleOrder.name
         ]);
       }
-
+    print("scssec---===========results2");
       var results3 = await DbHelper.db!.rawQuery('''
           SELECT 
             poscategory.name, 

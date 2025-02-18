@@ -536,12 +536,6 @@ class FinalReportService extends FinalReportRepository {
               InvoiceState.saleOrder.name,
               dateFilterKey,
             ],
-      // [
-      //     isSessionList ? id : SharedPr.currentSaleSession?.id,
-      //     InvoiceState.posted.name,
-      //     InvoiceState.saleOrder.name,
-      //     dateFilterKey
-      //   ]
     );
     List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(
       '''
@@ -575,8 +569,8 @@ class FinalReportService extends FinalReportRepository {
         InvoiceState.saleOrder.name,
       ],
     );
-    print(
-        "session_number ${isSessionList ? id : SharedPr.currentSaleSession?.id}");
+    print("session_number ${isSessionList ? id : SharedPr.currentSaleSession?.id}");
+    print("isSessionList $isSessionList");
     print("dateFilterKey $dateFilterKey");
     print("dateFilterKey ${formattedDate(filterKey: dateFilterKey, dateField: '2025-02-18T12:16:58')}");
     print("rawInvoices $rawInvoices");

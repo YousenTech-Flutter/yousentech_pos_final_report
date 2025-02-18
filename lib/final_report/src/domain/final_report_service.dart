@@ -513,7 +513,7 @@ class FinalReportService extends FinalReportRepository {
   Future fetchInvoicePaymentOptions(
       {String dateFilterKey = 'week',
       bool isSessionList = false,
-      int? id}) async {
+      int? id , String ?dateFilter }) async {
     print("fetchInvoicePaymentOptions##########");
     // Fetch raw data
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery(
@@ -534,7 +534,7 @@ class FinalReportService extends FinalReportRepository {
               SharedPr.currentSaleSession?.id,
               InvoiceState.posted.name,
               InvoiceState.saleOrder.name,
-              dateFilterKey,
+              dateFilter,
             ],
     );
     List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(

@@ -511,7 +511,8 @@ class FinalReportService extends FinalReportRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchInvoicePaymentOptions({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
+  Future fetchInvoicePaymentOptions({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
+    print("fetchInvoicePaymentOptions##########");
     // Fetch raw data
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
@@ -576,8 +577,8 @@ class FinalReportService extends FinalReportRepository {
     return resultMap.values.toList();
   }
 
-  Future<List<Map<String, dynamic>>> fetchUnlinkedPayment({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
-
+  Future fetchUnlinkedPayment({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
+    print("fetchUnlinkedPayment##########");
     // Fetch raw invoices
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date, payment_ids, change

@@ -409,14 +409,10 @@ class FinalReportService extends FinalReportRepository {
         ORDER BY available_qty ASC 
         LIMIT 3;
       ''');
-      var sqliteVersion =
-          await DbHelper.db!.rawQuery("SELECT sqlite_version()", null);
-      print("sqliteVersion $sqliteVersion");
-      final testJson =
-          await DbHelper.db!.rawQuery('SELECT json_array(1, 2, 3);');
-      print("SELECT json_array");
+      bool isSportJsonExtract = await DbHelper.testJsonExtract();
+      print("isSportJsonExtract $isSportJsonExtract");
       var results10;
-      if ((sqliteVersion[0]["sqlite_version()"]) == '3.32.2') {
+      if (!isSportJsonExtract) {
         results10 = await DbHelper.db!.rawQuery('''
   SELECT 
     SUBSTR(json_data.value, 

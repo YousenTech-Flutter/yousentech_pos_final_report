@@ -468,7 +468,6 @@ class FinalReportService extends FinalReportRepository {
 
       List productBasedCategories =
           maxQtyByCategory.values.map((value) => value).toList();
-      print("hhhhhhhhhhhhhhhhhhhhhhhhh");
       Map<String, dynamic> newOne = {};
       newOne.addAll(results[0]);
       newOne.addAll({'invoice_payment_options': results2});
@@ -483,7 +482,6 @@ class FinalReportService extends FinalReportRepository {
       // if (kDebugMode) {
       //   print('final resultt :::: ${newOne["Less_products_based_in_availableQty"]}');
       // }
-      print("ggggggggggggggggg");
       return FinalReportInfo.fromJson(newOne);
     } catch (e) {
       print(" ==========catch finalReportInfo========= $e");
@@ -525,7 +523,7 @@ class FinalReportService extends FinalReportRepository {
       InvoiceState.saleOrder.name,
       dateFilterKey
     ]);
-
+    print("rawInvoices $rawInvoices");
     // List<Map<String, dynamic>> processedResults = [];
     Map<int, Map<String, dynamic>> resultMap = {};
 
@@ -536,7 +534,7 @@ class FinalReportService extends FinalReportRepository {
       if (jsonString != '') {
         payments = jsonDecode(jsonString);
       }
-
+      print("payments $payments");
       for (var payment in payments) {
         int paymentId = payment['id'];
         double amount = double.tryParse(payment['amount'].toString()) ?? 0.0;
@@ -571,13 +569,11 @@ class FinalReportService extends FinalReportRepository {
         }
       }
     }
-    print("resultMap.values ${resultMap.values.toList()}");
-    
+    print("fetchInvoicePaymentOptions values ${resultMap.values.toList()}");
     return resultMap.values.toList();
   }
 
   Future fetchUnlinkedPayment({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
-    print("fetchUnlinkedPayment##########");
     // Fetch raw invoices
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date, payment_ids, change
@@ -641,7 +637,6 @@ class FinalReportService extends FinalReportRepository {
         }
       }
     }
-    print("fetchUnlinkedPayment ${resultMap.values.toList()}");
     
     return resultMap.values.toList();
   }

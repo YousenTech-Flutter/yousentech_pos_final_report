@@ -542,7 +542,7 @@ class FinalReportService extends FinalReportRepository {
             ],
     );
     var testss = await DbHelper.db!.rawQuery('''
-  SELECT strftime('%Y-%W', DATE('now'))
+  SELECT strftime('%Y-%W', DATE('now')) as AS time
 ''');
     print("testss $testss");
     List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(
@@ -557,7 +557,7 @@ class FinalReportService extends FinalReportRepository {
         isSessionList ? id : SharedPr.currentSaleSession?.id,
         InvoiceState.posted.name,
         InvoiceState.saleOrder.name,
-        testss[0].values
+        testss[0]["time"]
       ],
     );
     List<Map<String, dynamic>> rawInvoices3 = await DbHelper.db!.rawQuery(
@@ -576,7 +576,7 @@ class FinalReportService extends FinalReportRepository {
          SharedPr.currentSaleSession?.id,
         InvoiceState.posted.name,
         InvoiceState.saleOrder.name,
-        testss[0].values
+        testss[0]["time"]
       ],
     );
     print(

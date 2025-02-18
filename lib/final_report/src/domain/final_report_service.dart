@@ -1,4 +1,4 @@
-// ignore_for_file: unused_field
+// ignore_for_file: unused_field, prefer_typing_uninitialized_variables
 
 import 'package:pos_shared_preferences/helper/app_enum.dart';
 import 'package:pos_shared_preferences/models/final_report_info.dart';
@@ -283,8 +283,12 @@ class FinalReportService extends FinalReportRepository {
       bool isSessionList = false,
       int? id}) async {
     try {
+      var results10;
+      var results2;
       // Retrieve the date filter SQL clause based on the selected key
       String dateFilter = getDateFilter(dateFilterKey);
+      bool isSportJsonExtract = await DbHelper.testJsonExtract();
+      print("isSportJsonExtract $isSportJsonExtract");
       // change hear
       // AND ${formattedDate(filterKey: dateFilterKey, dateField: 'possession.start_date')} = $dateFilter
       var results = await DbHelper.db!.rawQuery('''
@@ -297,8 +301,47 @@ class FinalReportService extends FinalReportRepository {
           ON saleorderinvoice.session_number = possession.id
      WHERE saleorderinvoice.session_number =   ${isSessionList ? "$id" : "${SharedPr.currentSaleSession?.id}  AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}        
       ''');
-
-      var results2 = await DbHelper.db!.rawQuery('''
+      if (!isSportJsonExtract) {
+        results2 = await DbHelper.db!.rawQuery('''
+  SELECT 
+    SUBSTR(json_data.value, 
+           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
+           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) AS id,
+    SUM(CAST(SUBSTR(json_data.value, 
+           INSTR(json_data.value, '"amount":') + LENGTH('"amount":'), 
+           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"amount":') + LENGTH('"amount":')), ',') - 1) AS REAL)) - 
+    CASE 
+      WHEN aj.type = 'cash' THEN SUM(change) 
+      ELSE 0.0 
+    END AS total_amount,
+    aj.name AS account_journal_name,
+    aj.type AS type,
+    saleorderinvoice.move_type,
+    COUNT(saleorderinvoice.id) AS invoice_count
+  FROM 
+    saleorderinvoice,
+    json_each(invoice_chosen_payment) AS json_data
+  JOIN 
+    accountjournal aj 
+    ON SUBSTR(json_data.value, 
+           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
+           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) = aj.id
+  WHERE 
+    session_number = ?
+    AND state IN (?, ?)
+    ${isSessionList ? "" : "AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}    
+  GROUP BY 
+    SUBSTR(json_data.value, 
+           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
+           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1), 
+    aj.name, saleorderinvoice.move_type;
+''', [
+          isSessionList ? id : SharedPr.currentSaleSession?.id,
+          InvoiceState.posted.name,
+          InvoiceState.saleOrder.name
+        ]);
+      } else {
+        results2 = await DbHelper.db!.rawQuery('''
           SELECT 
             json_extract(json_data.value, '\$.id') AS id,
             SUM(CAST(json_extract(json_data.value, '\$.amount') AS REAL)) - 
@@ -318,10 +361,12 @@ class FinalReportService extends FinalReportRepository {
           ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}    
           GROUP BY json_extract(json_data.value, '\$.id'), aj.name, move_type;
         ''', [
-        isSessionList ? id : SharedPr.currentSaleSession?.id,
-        InvoiceState.posted.name,
-        InvoiceState.saleOrder.name
-      ]);
+          isSessionList ? id : SharedPr.currentSaleSession?.id,
+          InvoiceState.posted.name,
+          InvoiceState.saleOrder.name
+        ]);
+      }
+
       var results3 = await DbHelper.db!.rawQuery('''
           SELECT 
             poscategory.name, 
@@ -409,9 +454,7 @@ class FinalReportService extends FinalReportRepository {
         ORDER BY available_qty ASC 
         LIMIT 3;
       ''');
-      bool isSportJsonExtract = await DbHelper.testJsonExtract();
-      print("isSportJsonExtract $isSportJsonExtract");
-      var results10;
+
       if (!isSportJsonExtract) {
         results10 = await DbHelper.db!.rawQuery('''
   SELECT 

@@ -305,7 +305,7 @@ class FinalReportService extends FinalReportRepository {
       ''');
       if (!isSportJsonExtract) {
         results2 = await fetchInvoicePaymentOptions(
-            id: id, dateFilterKey: dateFilterKey, isSessionList: isSessionList);
+            id: id, dateFilterKey: dateFilterKey, isSessionList: isSessionList , dateFilter: dateFilter);
       } else {
         results2 = await DbHelper.db!.rawQuery('''
           SELECT 

@@ -304,7 +304,7 @@ class FinalReportService extends FinalReportRepository {
      WHERE saleorderinvoice.session_number =   ${isSessionList ? "$id" : "${SharedPr.currentSaleSession?.id}  AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}        
       ''');
       if (!isSportJsonExtract) {
-        results2 = fetchInvoicePaymentOptions(
+        results2 = await fetchInvoicePaymentOptions(
             id: id, dateFilterKey: dateFilterKey, isSessionList: isSessionList);
       } else {
         results2 = await DbHelper.db!.rawQuery('''
@@ -421,7 +421,7 @@ class FinalReportService extends FinalReportRepository {
       ''');
 
       if (!isSportJsonExtract) {
-        results10 = fetchUnlinkedPayment(id: id , isSessionList: isSessionList , dateFilterKey:dateFilterKey);
+        results10 = await fetchUnlinkedPayment(id: id , isSessionList: isSessionList , dateFilterKey:dateFilterKey);
       } else {
         results10 = await DbHelper.db!.rawQuery('''
           SELECT 

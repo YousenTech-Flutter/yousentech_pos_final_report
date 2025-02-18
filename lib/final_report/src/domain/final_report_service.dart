@@ -546,9 +546,23 @@ class FinalReportService extends FinalReportRepository {
     List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(
       '''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
-    FROM saleorderinvoice ''',
-      
+    FROM saleorderinvoice 
+    WHERE session_number = ?
+      AND state IN (?, ?)
+    ''',
+      isSessionList
+          ? [
+              id,
+              InvoiceState.posted.name,
+              InvoiceState.saleOrder.name,
+            ]
+          : [
+              SharedPr.currentSaleSession?.id,
+              InvoiceState.posted.name,
+              InvoiceState.saleOrder.name,
+            ],
     );
+    print("session_number ${isSessionList?id :SharedPr.currentSaleSession?.id}");
     print("rawInvoices $rawInvoices");
     print("rawInvoices2 $rawInvoices2");
     // List<Map<String, dynamic>> processedResults = [];

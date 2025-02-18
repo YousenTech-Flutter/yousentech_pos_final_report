@@ -573,6 +573,7 @@ class FinalReportService extends FinalReportRepository {
     print("isSessionList $isSessionList");
     print("dateFilterKey $dateFilterKey");
     print("dateFilterKey ${formattedDate(filterKey: dateFilterKey, dateField: '2025-02-18T12:16:58')}");
+    print("dateFilter $dateFilter");
     print("rawInvoices $rawInvoices");
     print("rawInvoices2 $rawInvoices2");
     print("rawInvoices3 $rawInvoices3");

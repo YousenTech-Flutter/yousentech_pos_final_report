@@ -544,39 +544,38 @@ class FinalReportService extends FinalReportRepository {
     var testss = await DbHelper.db!.rawQuery('''
   SELECT strftime('%Y-%W', DATE('now'))
 ''');
-print("testss $testss");
+    print("testss $testss");
     List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(
       '''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
     FROM saleorderinvoice
     WHERE session_number = ?
       AND state IN (?, ?)
-      ${isSessionList ? "" : " AND strftime('%Y-%W', DATE(REPLACE('2025-02-18T12:16:58', 'T', ' '))) = ?"}
+      ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = $dateFilter"}
   ''',
-      isSessionList
-          ? [
-              id,
-              InvoiceState.posted.name,
-              InvoiceState.saleOrder.name,
-            ]
-          : [
-              SharedPr.currentSaleSession?.id,
-              InvoiceState.posted.name,
-              InvoiceState.saleOrder.name,
-              testss[0],
-            ],
-    );
-    List<Map<String, dynamic>> rawInvoices3 = await DbHelper.db!.rawQuery(
-      '''
-    SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
-    FROM saleorderinvoice 
-    WHERE session_number = ?
-      AND state IN (?, ?)
-    ''',
       [
         isSessionList ? id : SharedPr.currentSaleSession?.id,
         InvoiceState.posted.name,
         InvoiceState.saleOrder.name,
+      ],
+    );
+    List<Map<String, dynamic>> rawInvoices3 = await DbHelper.db!.rawQuery(
+      '''
+    SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
+    FROM saleorderinvoice
+    WHERE session_number = ?
+      AND state IN (?, ?)
+      ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = $dateFilter"}
+  ''',
+    isSessionList?  [
+        id ,
+        InvoiceState.posted.name,
+        InvoiceState.saleOrder.name,
+      ] :[
+         SharedPr.currentSaleSession?.id,
+        InvoiceState.posted.name,
+        InvoiceState.saleOrder.name,
+        testss[0].values
       ],
     );
     print(

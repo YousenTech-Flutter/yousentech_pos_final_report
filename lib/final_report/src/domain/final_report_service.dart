@@ -553,12 +553,14 @@ class FinalReportService extends FinalReportRepository {
     FROM saleorderinvoice
     WHERE session_number = ?
       AND state IN (?, ?)
-      ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = $dateFilterKey"}
+      ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = ?"}
   ''', [
     isSessionList ? id : SharedPr.currentSaleSession?.id,
     InvoiceState.posted.name,
+    dateFilterKey,
     InvoiceState.saleOrder.name
   ]);
+
 
   // List<Map<String, dynamic>> processedResults = [];
   Map<int, Map<String, dynamic>> resultMap = {};

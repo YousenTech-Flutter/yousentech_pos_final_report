@@ -543,7 +543,14 @@ class FinalReportService extends FinalReportRepository {
       //     dateFilterKey
       //   ]
     );
+    List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(
+      '''
+    SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
+    FROM saleorderinvoice ''',
+      
+    );
     print("rawInvoices $rawInvoices");
+    print("rawInvoices2 $rawInvoices2");
     // List<Map<String, dynamic>> processedResults = [];
     Map<int, Map<String, dynamic>> resultMap = {};
 

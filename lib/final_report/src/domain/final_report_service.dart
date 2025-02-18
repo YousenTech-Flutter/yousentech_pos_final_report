@@ -411,6 +411,8 @@ class FinalReportService extends FinalReportRepository {
       ''');
       var sqliteVersion =
           await DbHelper.db!.rawQuery("SELECT sqlite_version()", null);
+      final testJson =
+          await DbHelper.db!.rawQuery('SELECT json_array(1, 2, 3);');
       var results10;
       if ((sqliteVersion[0]["sqlite_version()"]) == '3.32.2') {
         results10 = await DbHelper.db!.rawQuery('''

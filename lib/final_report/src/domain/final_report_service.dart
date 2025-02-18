@@ -542,7 +542,7 @@ class FinalReportService extends FinalReportRepository {
             ],
     );
     var testss = await DbHelper.db!.rawQuery('''
-  SELECT strftime('%Y-%W', DATE('now')) as AS time
+  SELECT strftime('%Y-%W', DATE('now')) AS time
 ''');
     print("testss $testss");
     List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(

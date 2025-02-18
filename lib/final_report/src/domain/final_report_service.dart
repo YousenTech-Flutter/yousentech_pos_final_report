@@ -468,7 +468,7 @@ class FinalReportService extends FinalReportRepository {
 
       List productBasedCategories =
           maxQtyByCategory.values.map((value) => value).toList();
-
+      print("hhhhhhhhhhhhhhhhhhhhhhhhh");
       Map<String, dynamic> newOne = {};
       newOne.addAll(results[0]);
       newOne.addAll({'invoice_payment_options': results2});
@@ -483,7 +483,7 @@ class FinalReportService extends FinalReportRepository {
       // if (kDebugMode) {
       //   print('final resultt :::: ${newOne["Less_products_based_in_availableQty"]}');
       // }
-
+      print("ggggggggggggggggg");
       return FinalReportInfo.fromJson(newOne);
     } catch (e) {
       print(" ==========catch finalReportInfo========= $e");
@@ -492,8 +492,7 @@ class FinalReportService extends FinalReportRepository {
     }
   }
 
-  Future<dynamic> getCountSessionDraftInvoicesNeedProcess(
-      {int? ssessionID}) async {
+  Future<dynamic> getCountSessionDraftInvoicesNeedProcess({int? ssessionID}) async {
     try {
       var result = await OdooProjectOwnerConnectionHelper.odooClient.callKw({
         'model': OdooModels.syncInvoiceTransit,
@@ -572,7 +571,7 @@ class FinalReportService extends FinalReportRepository {
         }
       }
     }
-    if(kDebugMode){print("resultMap.values ${resultMap.values.toList()}");}
+    print("resultMap.values ${resultMap.values.toList()}");
     
     return resultMap.values.toList();
   }
@@ -642,7 +641,7 @@ class FinalReportService extends FinalReportRepository {
         }
       }
     }
-    if(kDebugMode){print("fetchUnlinkedPayment ${resultMap.values.toList()}");}
+    print("fetchUnlinkedPayment ${resultMap.values.toList()}");
     
     return resultMap.values.toList();
   }

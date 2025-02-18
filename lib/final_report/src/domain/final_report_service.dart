@@ -540,10 +540,11 @@ class FinalReportService extends FinalReportRepository {
     List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(
       '''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
-    FROM saleorderinvoice 
+    FROM saleorderinvoice
     WHERE session_number = ?
       AND state IN (?, ?)
-    ''',
+      ${isSessionList ? "" : " AND strftime('%Y-%W', DATE(REPLACE('2025-02-18T12:16:58', 'T', ' '))) = ?"}
+  ''',
       isSessionList
           ? [
               id,
@@ -554,6 +555,7 @@ class FinalReportService extends FinalReportRepository {
               SharedPr.currentSaleSession?.id,
               InvoiceState.posted.name,
               InvoiceState.saleOrder.name,
+              dateFilter,
             ],
     );
     List<Map<String, dynamic>> rawInvoices3 = await DbHelper.db!.rawQuery(

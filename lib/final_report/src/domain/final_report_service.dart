@@ -486,10 +486,7 @@ class FinalReportService extends FinalReportRepository {
 
       return FinalReportInfo.fromJson(newOne);
     } catch (e) {
-      if(kDebugMode){
-        print(" ==========catch finalReportInfo========= $e");
-      }
-      
+      print(" ==========catch finalReportInfo========= $e");
       throw handleException(
           exception: e, navigation: false, methodName: "finalReportInfo");
     }

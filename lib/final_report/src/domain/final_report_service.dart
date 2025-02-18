@@ -425,7 +425,7 @@ class FinalReportService extends FinalReportRepository {
 
       if (!isSportJsonExtract) {
         results10 = await fetchUnlinkedPayment(
-            id: id, isSessionList: isSessionList, dateFilterKey: dateFilterKey);
+            id: id, isSessionList: isSessionList, dateFilterKey: dateFilterKey, dateFilter: dateFilter);
       } else {
         results10 = await DbHelper.db!.rawQuery('''
           SELECT 
@@ -520,6 +520,10 @@ class FinalReportService extends FinalReportRepository {
       String? dateFilter}) async {
     print("fetchInvoicePaymentOptions##########");
     // Fetch raw data
+    var dateFilterFormat = await DbHelper.db!.rawQuery('''
+  SELECT $dateFilter AS time
+''');
+    print("dateFilterFormat $dateFilterFormat");
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery(
       '''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
@@ -538,57 +542,9 @@ class FinalReportService extends FinalReportRepository {
               SharedPr.currentSaleSession?.id,
               InvoiceState.posted.name,
               InvoiceState.saleOrder.name,
-              dateFilter,
+              dateFilterFormat[0]["time"]
             ],
     );
-    var testss = await DbHelper.db!.rawQuery('''
-  SELECT strftime('%Y-%W', DATE('now')) AS time
-''');
-    print("testss $testss");
-    List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(
-      '''
-    SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
-    FROM saleorderinvoice
-    WHERE session_number = ?
-      AND state IN (?, ?)
-      ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = ?"}
-  ''',
-      [
-        isSessionList ? id : SharedPr.currentSaleSession?.id,
-        InvoiceState.posted.name,
-        InvoiceState.saleOrder.name,
-        testss[0]["time"]
-      ],
-    );
-    List<Map<String, dynamic>> rawInvoices3 = await DbHelper.db!.rawQuery(
-      '''
-    SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
-    FROM saleorderinvoice
-    WHERE session_number = ?
-      AND state IN (?, ?)
-      ${isSessionList ? "" : " AND strftime('%Y-%W', REPLACE(create_date, 'T', ' ')) = ?"}
-  ''',
-    isSessionList?  [
-        id ,
-        InvoiceState.posted.name,
-        InvoiceState.saleOrder.name,
-      ] :[
-         SharedPr.currentSaleSession?.id,
-        InvoiceState.posted.name,
-        InvoiceState.saleOrder.name,
-        testss[0]["time"]
-      ],
-    );
-    print(
-        "session_number ${isSessionList ? id : SharedPr.currentSaleSession?.id}");
-    print("isSessionList $isSessionList");
-    print("dateFilterKey $dateFilterKey");
-    print(
-        "dateFilterKey ${formattedDate(filterKey: dateFilterKey, dateField: '2025-02-18T12:16:58')}");
-    print("dateFilter $dateFilter");
-    print("rawInvoices $rawInvoices");
-    print("rawInvoices2 $rawInvoices2");
-    print("rawInvoices3 $rawInvoices3");
     // List<Map<String, dynamic>> processedResults = [];
     Map<int, Map<String, dynamic>> resultMap = {};
 
@@ -641,24 +597,39 @@ class FinalReportService extends FinalReportRepository {
   Future fetchUnlinkedPayment(
       {String dateFilterKey = 'week',
       bool isSessionList = false,
-      int? id}) async {
+      int? id,
+      String? dateFilter}) async {
     // Fetch raw invoices
-    List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
+    print("fetchUnlinkedPayment=======");
+    var dateFilterFormat = await DbHelper.db!.rawQuery('''
+  SELECT $dateFilter AS time
+''');
+print("dateFilterFormat $dateFilterFormat");
+    List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery(
+      '''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date, payment_ids, change
     FROM saleorderinvoice
     WHERE session_number = ?
       AND state IN (?, ?)
       ${isSessionList ? "AND payment_ids != 'null'" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = ?"}
-  ''', [
-      isSessionList ? id : SharedPr.currentSaleSession?.id,
-      InvoiceState.posted.name,
-      InvoiceState.saleOrder.name,
-      dateFilterKey
-    ]);
+  ''',
+      isSessionList
+          ? [
+              id,
+              InvoiceState.posted.name,
+              InvoiceState.saleOrder.name,
+            ]
+          : [
+              SharedPr.currentSaleSession?.id,
+              InvoiceState.posted.name,
+              InvoiceState.saleOrder.name,
+              dateFilterFormat[0]["time"]
+            ],
+    );
 
     // Map to store aggregated results by payment ID
     Map<int, Map<String, dynamic>> resultMap = {};
-
+    print("rawInvoices $rawInvoices");
     for (var invoice in rawInvoices) {
       // Parse invoice_chosen_payment (stored as a JSON string)
       String jsonString = invoice['invoice_chosen_payment'] ?? '';
@@ -705,7 +676,7 @@ class FinalReportService extends FinalReportRepository {
         }
       }
     }
-
+    print("resultMap.values.toList() ${resultMap.values.toList()}");
     return resultMap.values.toList();
   }
 }

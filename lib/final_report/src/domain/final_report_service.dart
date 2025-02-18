@@ -1,5 +1,7 @@
 // ignore_for_file: unused_field, prefer_typing_uninitialized_variables
 
+import 'dart:convert';
+
 import 'package:pos_shared_preferences/helper/app_enum.dart';
 import 'package:pos_shared_preferences/models/final_report_info.dart';
 import 'package:pos_shared_preferences/models/sale_order.dart';
@@ -278,10 +280,7 @@ class FinalReportService extends FinalReportRepository {
   }
 
   @override
-  Future<dynamic> finalReportInfo(
-      {String dateFilterKey = 'week',
-      bool isSessionList = false,
-      int? id}) async {
+  Future<dynamic> finalReportInfo({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
     try {
       var results10;
       var results2;
@@ -302,34 +301,7 @@ class FinalReportService extends FinalReportRepository {
      WHERE saleorderinvoice.session_number =   ${isSessionList ? "$id" : "${SharedPr.currentSaleSession?.id}  AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}        
       ''');
       if (!isSportJsonExtract) {
-        results2 = await DbHelper.db!.rawQuery('''
-SELECT
-    SUBSTR(invoice_chosen_payment, 
-           INSTR(invoice_chosen_payment, '"id":') + LENGTH('"id":')) AS id,
-    SUM(CAST(SUBSTR(invoice_chosen_payment, 
-                    INSTR(invoice_chosen_payment, '"amount":') + LENGTH('"amount":'), 
-                    INSTR(invoice_chosen_payment, '}', INSTR(invoice_chosen_payment, '"amount":')) - INSTR(invoice_chosen_payment, '"amount":') - LENGTH('"amount":')) AS REAL)) - 
-    CASE WHEN aj.type = 'cash' THEN SUM(saleorderinvoice.change) ELSE 0.0 END AS total_amount,
-    aj.name AS account_journal_name,
-    aj.type AS type,
-    saleorderinvoice.move_type,
-    COUNT(saleorderinvoice.id) AS invoice_count
-FROM
-    saleorderinvoice
-JOIN
-    accountjournal aj ON SUBSTR(invoice_chosen_payment, 
-                                 INSTR(invoice_chosen_payment, '"id":') + LENGTH('"id":')) = aj.id
-WHERE 
-    session_number = ?
-    AND state IN (?, ?)
-    ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}
-GROUP BY 
-    id, aj.name, saleorderinvoice.move_type;
-''', [
-          isSessionList ? id : SharedPr.currentSaleSession?.id,
-          InvoiceState.posted.name,
-          InvoiceState.saleOrder.name
-        ]);
+        results2 = fetchInvoicePaymentOptions(id:id ,dateFilterKey: dateFilterKey , isSessionList: isSessionList);
       } else {
         results2 = await DbHelper.db!.rawQuery('''
           SELECT 
@@ -573,4 +545,69 @@ GROUP BY
               "FinalReportService getCountSessionDraftInvoicesNeedProcess");
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchInvoicePaymentOptions({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
+  // Fetch raw data
+  List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
+    SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
+    FROM saleorderinvoice
+    WHERE session_number = ?
+      AND state IN (?, ?)
+      ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = $dateFilterKey"}
+  ''', [
+    isSessionList ? id : SharedPr.currentSaleSession?.id,
+    InvoiceState.posted.name,
+    InvoiceState.saleOrder.name
+  ]);
+
+  // List<Map<String, dynamic>> processedResults = [];
+  Map<int, Map<String, dynamic>> resultMap = {};
+
+  for (var invoice in rawInvoices) {
+    // Parse invoice_chosen_payment (which is stored as a JSON string)
+    String jsonString = invoice['invoice_chosen_payment'] ?? '';
+    List<dynamic> payments = [];
+    if(jsonString != ''){
+      payments = jsonDecode(jsonString);
+    }
+
+
+    for (var payment in payments) {
+      int paymentId = payment['id'];
+      double amount = double.tryParse(payment['amount'].toString()) ?? 0.0;
+
+      // Fetch account journal info
+      List<Map<String, dynamic>> journal = await DbHelper.db!.rawQuery('''
+        SELECT name, type FROM accountjournal WHERE id = ?
+      ''', [paymentId]);
+
+      if (journal.isNotEmpty) {
+        String journalName = journal.first['name'];
+        String journalType = journal.first['type'];
+
+        // Calculate total_amount
+        double totalAmount = amount;
+        if (journalType == 'cash') {
+          totalAmount -= invoice['change'] ?? 0.0;
+        }
+        if (resultMap.containsKey(paymentId)) {
+          resultMap[paymentId]!['total_amount'] += totalAmount;
+          resultMap[paymentId]!['invoice_count'] += 1;
+        } else {
+          resultMap[paymentId] = {
+            'id': paymentId,
+            'total_amount': totalAmount,
+            'account_journal_name': journalName,
+            'type': journalType,
+            'move_type': invoice['move_type'],
+            'invoice_count': 1, // Start count
+          };
+        }
+      }
+    }
+  }
+
+  print("resultMap.values ${resultMap.values}");
+  return resultMap.values.toList();
+}
 }

@@ -280,16 +280,19 @@ class FinalReportService extends FinalReportRepository {
   }
 
   @override
-  Future<dynamic> finalReportInfo({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
+  Future<dynamic> finalReportInfo(
+      {String dateFilterKey = 'week',
+      bool isSessionList = false,
+      int? id}) async {
     try {
       var results10;
       var results2;
       // Retrieve the date filter SQL clause based on the selected key
       String dateFilter = getDateFilter(dateFilterKey);
       bool isSportJsonExtract = await DbHelper.testJsonExtract();
-      print("isSportJsonExtract $isSportJsonExtract");
-      // change hear
-      // AND ${formattedDate(filterKey: dateFilterKey, dateField: 'possession.start_date')} = $dateFilter
+      if(kDebugMode){
+        print("isSportJsonExtract $isSportJsonExtract");
+      } 
       var results = await DbHelper.db!.rawQuery('''
         SELECT 
           SUM(CASE WHEN move_type = 'out_refund' THEN total_price ELSE 0.0 END) AS total_out_refund,
@@ -301,7 +304,8 @@ class FinalReportService extends FinalReportRepository {
      WHERE saleorderinvoice.session_number =   ${isSessionList ? "$id" : "${SharedPr.currentSaleSession?.id}  AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}        
       ''');
       if (!isSportJsonExtract) {
-        results2 = fetchInvoicePaymentOptions(id:id ,dateFilterKey: dateFilterKey , isSessionList: isSessionList);
+        results2 = fetchInvoicePaymentOptions(
+            id: id, dateFilterKey: dateFilterKey, isSessionList: isSessionList);
       } else {
         results2 = await DbHelper.db!.rawQuery('''
           SELECT 
@@ -328,7 +332,6 @@ class FinalReportService extends FinalReportRepository {
           InvoiceState.saleOrder.name
         ]);
       }
-    print("scssec---===========results2");
       var results3 = await DbHelper.db!.rawQuery('''
           SELECT 
             poscategory.name, 
@@ -418,45 +421,7 @@ class FinalReportService extends FinalReportRepository {
       ''');
 
       if (!isSportJsonExtract) {
-        results10 = await DbHelper.db!.rawQuery('''
-  SELECT 
-    SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) AS id,
-    SUM(CAST(SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"amount":') + LENGTH('"amount":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"amount":') + LENGTH('"amount":')), ',') - 1) AS REAL)) - 
-    CASE 
-      WHEN aj.type = 'cash' THEN SUM(change) 
-      ELSE 0.0 
-    END AS total_amount,
-    aj.name AS account_journal_name,
-    aj.type AS type,
-    saleorderinvoice.move_type,
-    saleorderinvoice.payment_ids,
-    COUNT(saleorderinvoice.id) AS invoice_count
-  FROM 
-    saleorderinvoice,
-    (SELECT value FROM invoice_chosen_payment) AS json_data
-  JOIN 
-    accountjournal aj 
-    ON SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1) = aj.id
-  WHERE 
-    session_number = ?
-    AND state IN (?, ?)
-    ${isSessionList ? "AND payment_ids != 'null'" : "AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}    
-  GROUP BY 
-    SUBSTR(json_data.value, 
-           INSTR(json_data.value, '"id":') + LENGTH('"id":'), 
-           INSTR(SUBSTR(json_data.value, INSTR(json_data.value, '"id":') + LENGTH('"id":')), ',') - 1), 
-    aj.name, saleorderinvoice.move_type;
-''', [
-          isSessionList ? id : SharedPr.currentSaleSession?.id,
-          InvoiceState.posted.name,
-          InvoiceState.saleOrder.name,
-        ]);
+        results10 = fetchUnlinkedPayment(id: id , isSessionList: isSessionList , dateFilterKey:dateFilterKey);
       } else {
         results10 = await DbHelper.db!.rawQuery('''
           SELECT 
@@ -521,7 +486,10 @@ class FinalReportService extends FinalReportRepository {
 
       return FinalReportInfo.fromJson(newOne);
     } catch (e) {
-      print(" ==========catch finalReportInfo========= $e");
+      if(kDebugMode){
+        print(" ==========catch finalReportInfo========= $e");
+      }
+      
       throw handleException(
           exception: e, navigation: false, methodName: "finalReportInfo");
     }
@@ -547,69 +515,137 @@ class FinalReportService extends FinalReportRepository {
   }
 
   Future<List<Map<String, dynamic>>> fetchInvoicePaymentOptions({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
-  // Fetch raw data
-  List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
+    // Fetch raw data
+    List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
     FROM saleorderinvoice
     WHERE session_number = ?
       AND state IN (?, ?)
       ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = ?"}
   ''', [
-    isSessionList ? id : SharedPr.currentSaleSession?.id,
-    InvoiceState.posted.name,
-    dateFilterKey,
-    InvoiceState.saleOrder.name
-  ]);
+      isSessionList ? id : SharedPr.currentSaleSession?.id,
+      InvoiceState.posted.name,
+      InvoiceState.saleOrder.name,
+      dateFilterKey
+    ]);
 
+    // List<Map<String, dynamic>> processedResults = [];
+    Map<int, Map<String, dynamic>> resultMap = {};
 
-  // List<Map<String, dynamic>> processedResults = [];
-  Map<int, Map<String, dynamic>> resultMap = {};
+    for (var invoice in rawInvoices) {
+      // Parse invoice_chosen_payment (which is stored as a JSON string)
+      String jsonString = invoice['invoice_chosen_payment'] ?? '';
+      List<dynamic> payments = [];
+      if (jsonString != '') {
+        payments = jsonDecode(jsonString);
+      }
 
-  for (var invoice in rawInvoices) {
-    // Parse invoice_chosen_payment (which is stored as a JSON string)
-    String jsonString = invoice['invoice_chosen_payment'] ?? '';
-    List<dynamic> payments = [];
-    if(jsonString != ''){
-      payments = jsonDecode(jsonString);
-    }
+      for (var payment in payments) {
+        int paymentId = payment['id'];
+        double amount = double.tryParse(payment['amount'].toString()) ?? 0.0;
 
-
-    for (var payment in payments) {
-      int paymentId = payment['id'];
-      double amount = double.tryParse(payment['amount'].toString()) ?? 0.0;
-
-      // Fetch account journal info
-      List<Map<String, dynamic>> journal = await DbHelper.db!.rawQuery('''
+        // Fetch account journal info
+        List<Map<String, dynamic>> journal = await DbHelper.db!.rawQuery('''
         SELECT name, type FROM accountjournal WHERE id = ?
       ''', [paymentId]);
 
-      if (journal.isNotEmpty) {
-        String journalName = journal.first['name'];
-        String journalType = journal.first['type'];
+        if (journal.isNotEmpty) {
+          String journalName = journal.first['name'];
+          String journalType = journal.first['type'];
 
-        // Calculate total_amount
-        double totalAmount = amount;
-        if (journalType == 'cash') {
-          totalAmount -= invoice['change'] ?? 0.0;
-        }
-        if (resultMap.containsKey(paymentId)) {
-          resultMap[paymentId]!['total_amount'] += totalAmount;
-          resultMap[paymentId]!['invoice_count'] += 1;
-        } else {
-          resultMap[paymentId] = {
-            'id': paymentId,
-            'total_amount': totalAmount,
-            'account_journal_name': journalName,
-            'type': journalType,
-            'move_type': invoice['move_type'],
-            'invoice_count': 1, // Start count
-          };
+          // Calculate total_amount
+          double totalAmount = amount;
+          if (journalType == 'cash') {
+            totalAmount -= invoice['change'] ?? 0.0;
+          }
+          if (resultMap.containsKey(paymentId)) {
+            resultMap[paymentId]!['total_amount'] += totalAmount;
+            resultMap[paymentId]!['invoice_count'] += 1;
+          } else {
+            resultMap[paymentId] = {
+              'id': paymentId,
+              'total_amount': totalAmount,
+              'account_journal_name': journalName,
+              'type': journalType,
+              'move_type': invoice['move_type'],
+              'invoice_count': 1, // Start count
+            };
+          }
         }
       }
     }
+    if(kDebugMode){print("resultMap.values ${resultMap.values.toList()}");}
+    
+    return resultMap.values.toList();
   }
 
-  print("resultMap.values ${resultMap.values}");
-  return resultMap.values.toList();
-}
+  Future<List<Map<String, dynamic>>> fetchUnlinkedPayment({String dateFilterKey = 'week',bool isSessionList = false,int? id}) async {
+
+    // Fetch raw invoices
+    List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery('''
+    SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date, payment_ids, change
+    FROM saleorderinvoice
+    WHERE session_number = ?
+      AND state IN (?, ?)
+      ${isSessionList ? "AND payment_ids != 'null'" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'create_date')} = ?"}
+  ''', [
+      isSessionList ? id : SharedPr.currentSaleSession?.id,
+      InvoiceState.posted.name,
+      InvoiceState.saleOrder.name,
+      dateFilterKey
+    ]);
+
+    // Map to store aggregated results by payment ID
+    Map<int, Map<String, dynamic>> resultMap = {};
+
+    for (var invoice in rawInvoices) {
+      // Parse invoice_chosen_payment (stored as a JSON string)
+      String jsonString = invoice['invoice_chosen_payment'] ?? '';
+      List<dynamic> payments = [];
+
+      if (jsonString != '') {
+        payments = jsonDecode(jsonString);
+      }
+
+      for (var payment in payments) {
+        int paymentId = payment['id'];
+        double amount = double.tryParse(payment['amount'].toString()) ?? 0.0;
+
+        // Fetch account journal info
+        List<Map<String, dynamic>> journal = await DbHelper.db!.rawQuery('''
+        SELECT name, type FROM accountjournal WHERE id = ?
+      ''', [paymentId]);
+
+        if (journal.isNotEmpty) {
+          String journalName = journal.first['name'];
+          String journalType = journal.first['type'];
+
+          // Calculate total_amount
+          double totalAmount = amount;
+          if (journalType == 'cash') {
+            totalAmount -= invoice['change'] ?? 0.0;
+          }
+
+          // Aggregate data by id
+          if (resultMap.containsKey(paymentId)) {
+            resultMap[paymentId]!['total_amount'] += totalAmount;
+            resultMap[paymentId]!['invoice_count'] += 1;
+          } else {
+            resultMap[paymentId] = {
+              'id': paymentId,
+              'total_amount': totalAmount,
+              'account_journal_name': journalName,
+              'type': journalType,
+              'move_type': invoice['move_type'],
+              'payment_ids': invoice['payment_ids'],
+              'invoice_count': 1, // Start count
+            };
+          }
+        }
+      }
+    }
+    if(kDebugMode){print("fetchUnlinkedPayment ${resultMap.values.toList()}");}
+    
+    return resultMap.values.toList();
+  }
 }

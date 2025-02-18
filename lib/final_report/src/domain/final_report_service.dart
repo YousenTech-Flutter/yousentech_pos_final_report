@@ -305,7 +305,10 @@ class FinalReportService extends FinalReportRepository {
       ''');
       if (!isSportJsonExtract) {
         results2 = await fetchInvoicePaymentOptions(
-            id: id, dateFilterKey: dateFilterKey, isSessionList: isSessionList , dateFilter: dateFilter);
+            id: id,
+            dateFilterKey: dateFilterKey,
+            isSessionList: isSessionList,
+            dateFilter: dateFilter);
       } else {
         results2 = await DbHelper.db!.rawQuery('''
           SELECT 
@@ -513,7 +516,8 @@ class FinalReportService extends FinalReportRepository {
   Future fetchInvoicePaymentOptions(
       {String dateFilterKey = 'week',
       bool isSessionList = false,
-      int? id , String ?dateFilter }) async {
+      int? id,
+      String? dateFilter}) async {
     print("fetchInvoicePaymentOptions##########");
     // Fetch raw data
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery(
@@ -537,6 +541,9 @@ class FinalReportService extends FinalReportRepository {
               dateFilter,
             ],
     );
+    var testss = await DbHelper.db!.rawQuery('''
+  SELECT strftime('%Y-%W', DATE('now'))
+''');
     List<Map<String, dynamic>> rawInvoices2 = await DbHelper.db!.rawQuery(
       '''
     SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
@@ -555,7 +562,7 @@ class FinalReportService extends FinalReportRepository {
               SharedPr.currentSaleSession?.id,
               InvoiceState.posted.name,
               InvoiceState.saleOrder.name,
-              dateFilter,
+              testss[0],
             ],
     );
     List<Map<String, dynamic>> rawInvoices3 = await DbHelper.db!.rawQuery(
@@ -571,10 +578,12 @@ class FinalReportService extends FinalReportRepository {
         InvoiceState.saleOrder.name,
       ],
     );
-    print("session_number ${isSessionList ? id : SharedPr.currentSaleSession?.id}");
+    print(
+        "session_number ${isSessionList ? id : SharedPr.currentSaleSession?.id}");
     print("isSessionList $isSessionList");
     print("dateFilterKey $dateFilterKey");
-    print("dateFilterKey ${formattedDate(filterKey: dateFilterKey, dateField: '2025-02-18T12:16:58')}");
+    print(
+        "dateFilterKey ${formattedDate(filterKey: dateFilterKey, dateField: '2025-02-18T12:16:58')}");
     print("dateFilter $dateFilter");
     print("rawInvoices $rawInvoices");
     print("rawInvoices2 $rawInvoices2");

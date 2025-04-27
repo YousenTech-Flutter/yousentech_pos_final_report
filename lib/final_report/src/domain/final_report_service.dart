@@ -485,8 +485,7 @@ class FinalReportService extends FinalReportRepository {
       // }
       return FinalReportInfo.fromJson(newOne);
     } catch (e) {
-      print(" ==========catch finalReportInfo========= $e");
-      throw handleException(
+      throw await handleException(
           exception: e, navigation: false, methodName: "finalReportInfo");
     }
   }
@@ -502,7 +501,7 @@ class FinalReportService extends FinalReportRepository {
       });
       return result;
     } catch (e) {
-      return handleException(
+      return await handleException(
           exception: e,
           navigation: true,
           methodName:

@@ -164,7 +164,7 @@ Future<pw.Document> rollSesstionPrint(
           ),
           pw.SizedBox(height: 5),
           infoText(
-            value: SharedPr.currentCompanyObject!.country ?? "##",
+            value: SharedPr.currentCompanyObject!.country?.countryName ?? "##",
             isblack: true,
           ),
           pw.SizedBox(height: 5),

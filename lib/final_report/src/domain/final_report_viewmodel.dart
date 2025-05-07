@@ -347,7 +347,7 @@ class FinalReportController extends GetxController {
     final PdfPageFormat pdfFormat =
         printingInvoiceController.getFormatByName(formatName: format);
     final pdfDirectory =
-        printingInvoiceController.pdfCreatDirectory('PDF Session Report');
+      await  printingInvoiceController.pdfCreatDirectory('PDF Session Report');
     buildPDFLayout(format: pdfFormat);
     Random random = Random();
     var randomnum = 1000 + random.nextInt(9000);

@@ -589,7 +589,8 @@ class FinalReportService extends FinalReportRepository {
           // Calculate total_amount
           double totalAmount = amount;
           if (journalType == 'cash') {
-            totalAmount -= invoice['change'] ?? 0.0;
+            // totalAmount -= invoice['change'] ?? 0.0;
+            totalAmount  = totalAmount - (invoice['change'] ?? 0.0);
           }
           if (resultMap.containsKey(paymentId)) {
             resultMap[paymentId]!['total_amount'] += totalAmount;

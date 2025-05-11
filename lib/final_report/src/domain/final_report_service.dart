@@ -307,11 +307,35 @@ class FinalReportService extends FinalReportRepository {
             isSessionList: isSessionList,
             dateFilter: dateFilter);
       } else {
+        // results2 = await DbHelper.db!.rawQuery('''
+        //   SELECT 
+        //     json_extract(json_data.value, '\$.id') AS id,
+        //     SUM(CAST(json_extract(json_data.value, '\$.amount') AS REAL)) - 
+        //     CASE WHEN aj.type = 'cash' THEN SUM(change) ELSE 0.0 END AS total_amount,
+        //     aj.name AS account_journal_name,
+        //     aj.type AS type,
+        //     saleorderinvoice.move_type,
+        //     COUNT(saleorderinvoice.id) AS invoice_count
+        //   FROM 
+        //     saleorderinvoice,
+        //     json_each(invoice_chosen_payment) AS json_data
+        //   JOIN 
+        //     accountjournal aj 
+        //     ON json_extract(json_data.value, '\$.id') = aj.id
+        //   WHERE session_number = ?
+        //     AND state IN (?, ?)
+        //   ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}    
+        //   GROUP BY json_extract(json_data.value, '\$.id'), aj.name, move_type;
+        // ''', [
+        //   isSessionList ? id : SharedPr.currentSaleSession?.id,
+        //   InvoiceState.posted.name,
+        //   InvoiceState.saleOrder.name
+        // ]);
+
         results2 = await DbHelper.db!.rawQuery('''
           SELECT 
             json_extract(json_data.value, '\$.id') AS id,
-            SUM(CAST(json_extract(json_data.value, '\$.amount') AS REAL)) - 
-            CASE WHEN aj.type = 'cash' THEN SUM(change) ELSE 0.0 END AS total_amount,
+            SUM(total_price)AS total_amount,
             aj.name AS account_journal_name,
             aj.type AS type,
             saleorderinvoice.move_type,
@@ -327,10 +351,10 @@ class FinalReportService extends FinalReportRepository {
           ${isSessionList ? "" : " AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}    
           GROUP BY json_extract(json_data.value, '\$.id'), aj.name, move_type;
         ''', [
-          isSessionList ? id : SharedPr.currentSaleSession?.id,
-          InvoiceState.posted.name,
-          InvoiceState.saleOrder.name
-        ]);
+        isSessionList ? id : SharedPr.currentSaleSession?.id,
+        InvoiceState.posted.name,
+        InvoiceState.saleOrder.name
+      ]);
       }
       var results3 = await DbHelper.db!.rawQuery('''
           SELECT 

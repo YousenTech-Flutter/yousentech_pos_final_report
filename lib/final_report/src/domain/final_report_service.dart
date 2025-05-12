@@ -545,7 +545,7 @@ class FinalReportService extends FinalReportRepository {
 ''');
     List<Map<String, dynamic>> rawInvoices = await DbHelper.db!.rawQuery(
       '''
-    SELECT id, invoice_chosen_payment, state, session_number, move_type, create_date
+    SELECT id, invoice_chosen_payment, state, session_number, change, move_type, create_date
     FROM saleorderinvoice
     WHERE session_number = ?
       AND state IN (?, ?)

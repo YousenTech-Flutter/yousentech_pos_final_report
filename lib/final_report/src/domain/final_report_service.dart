@@ -301,6 +301,7 @@ class FinalReportService extends FinalReportRepository {
      WHERE saleorderinvoice.session_number =   ${isSessionList ? "$id" : "${SharedPr.currentSaleSession?.id}  AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}        
       ''');
       if (!isSportJsonExtract) {
+        print("!isSportJsonExtract");
         results2 = await fetchInvoicePaymentOptions(
             id: id,
             dateFilterKey: dateFilterKey,
@@ -590,6 +591,7 @@ class FinalReportService extends FinalReportRepository {
           double totalAmount = amount;
           if (journalType == 'cash') {
             // totalAmount -= invoice['change'] ?? 0.0;
+            print("journalType:: $totalAmount");
             totalAmount  = totalAmount - (invoice['change'] ?? 0.0);
           }
           if (resultMap.containsKey(paymentId)) {

@@ -591,8 +591,9 @@ class FinalReportService extends FinalReportRepository {
           double totalAmount = amount;
           if (journalType == 'cash') {
             // totalAmount -= invoice['change'] ?? 0.0;
-            print("journalType:: $totalAmount");
+            print("journalType:: $totalAmount ${invoice['change']}");
             totalAmount  = totalAmount - (invoice['change'] ?? 0.0);
+            print("totalAmount:: $totalAmount");
           }
           if (resultMap.containsKey(paymentId)) {
             resultMap[paymentId]!['total_amount'] += totalAmount;

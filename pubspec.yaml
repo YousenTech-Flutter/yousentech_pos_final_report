@@ -13,10 +13,9 @@ dependencies:
   fl_chart: ^0.69.0
   get: ^4.6.6
   intl: ^0.20.2
-  # pdf: ^3.11.1
-  # printing: ^5.6.0
-  pdf: ^3.6.5
-  printing: ^5.0.0
+  pdf: ^3.11.1
+  printing: ^5.6.0
+
   flutter_screenutil: ^5.9.3
 
   pos_shared_preferences:

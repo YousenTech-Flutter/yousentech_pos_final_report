@@ -388,7 +388,8 @@ class FinalReportService extends FinalReportRepository {
 
       var result5 = await DbHelper.db!.rawQuery('''
           SELECT 
-            SUM(total_price) AS total, 
+            SUM(total_price) AS total,
+            COUNT(*) AS count,
             state 
           FROM saleorderinvoice
           WHERE session_number = ${isSessionList ? "$id" : "${SharedPr.currentSaleSession?.id}  AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"} 

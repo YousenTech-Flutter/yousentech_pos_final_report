@@ -711,7 +711,7 @@ Future<List> getSalesPerformanceInfo({int type = 2}) async {
         SELECT 6, 'Saturday'
       )
       SELECT 
-        days.name AS day_name,
+        days.name AS name,
         ROUND(IFNULL(SUM(total_price), 0)) AS total
       FROM days
       LEFT JOIN saleorderinvoice s
@@ -737,7 +737,7 @@ Future<List> getSalesPerformanceInfo({int type = 2}) async {
         SELECT 12, 'December'
       )
       SELECT 
-        months.name AS month_name,
+        months.name AS name,
         ROUND( IFNULL(SUM(total_price), 0)) AS total
       FROM months
       LEFT JOIN saleorderinvoice s
@@ -749,7 +749,7 @@ Future<List> getSalesPerformanceInfo({int type = 2}) async {
   } else if (type == 2) {
     query = '''
       SELECT 
-        strftime('%Y', date_order) AS year,
+        strftime('%Y', date_order) AS name,
         ROUND( IFNULL(SUM(total_price), 0)) AS total
       FROM saleorderinvoice
       GROUP BY strftime('%Y', date_order)

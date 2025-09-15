@@ -694,4 +694,70 @@ class FinalReportService extends FinalReportRepository {
     }
     return resultMap.values.toList();
   }
+
+
+Future<List> getSalesPerformanceInfo({int type = 2}) async {
+  String query = "";
+
+  if (type == 0) {
+    query = '''
+      WITH RECURSIVE days(d, name) AS (
+        SELECT 0, 'Sunday' UNION ALL
+        SELECT 1, 'Monday' UNION ALL
+        SELECT 2, 'Tuesday' UNION ALL
+        SELECT 3, 'Wednesday' UNION ALL
+        SELECT 4, 'Thursday' UNION ALL
+        SELECT 5, 'Friday' UNION ALL
+        SELECT 6, 'Saturday'
+      )
+      SELECT 
+        days.name AS day_name,
+        ROUND(IFNULL(SUM(total_price), 0)) AS total
+      FROM days
+      LEFT JOIN saleorderinvoice s
+        ON CAST(strftime('%w', s.date_order) AS INT) = days.d
+        AND strftime('%Y-%W', s.date_order) = strftime('%Y-%W', 'now')
+      GROUP BY days.d
+      ORDER BY days.d;
+    ''';
+  } else if (type == 1) {
+    query = '''
+      WITH RECURSIVE months(m, name) AS (
+        SELECT 1,  'January' UNION ALL
+        SELECT 2,  'February' UNION ALL
+        SELECT 3,  'March' UNION ALL
+        SELECT 4,  'April' UNION ALL
+        SELECT 5,  'May' UNION ALL
+        SELECT 6,  'June' UNION ALL
+        SELECT 7,  'July' UNION ALL
+        SELECT 8,  'August' UNION ALL
+        SELECT 9,  'September' UNION ALL
+        SELECT 10, 'October' UNION ALL
+        SELECT 11, 'November' UNION ALL
+        SELECT 12, 'December'
+      )
+      SELECT 
+        months.name AS month_name,
+        ROUND( IFNULL(SUM(total_price), 0)) AS total
+      FROM months
+      LEFT JOIN saleorderinvoice s
+        ON CAST(strftime('%m', s.date_order) AS INT) = months.m
+        AND strftime('%Y', s.date_order) = strftime('%Y', 'now')
+      GROUP BY months.m
+      ORDER BY months.m;
+    ''';
+  } else if (type == 2) {
+    query = '''
+      SELECT 
+        strftime('%Y', date_order) AS year,
+        ROUND( IFNULL(SUM(total_price), 0)) AS total
+      FROM saleorderinvoice
+      GROUP BY strftime('%Y', date_order)
+      ORDER BY strftime('%Y', date_order);
+    ''';
+  }
+  return await DbHelper.db!.rawQuery(query);
+
+}
+
 }

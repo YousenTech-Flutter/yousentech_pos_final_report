@@ -46,12 +46,11 @@ class FinalReportController extends GetxController {
   int paymentLength = 0;
   bool isPDFDialogOpen = false;
   bool isFromSessionList = false;
-
   final intl.NumberFormat formatter = intl.NumberFormat('#,##0.00', 'en_US');
+  List salesPerformanceItems = [];
+  int salesPerformanceTab = 0;
   @override
   void onInit() {
-    // await getFinalReportInfo();
-
     super.onInit();
   }
 
@@ -450,5 +449,14 @@ class FinalReportController extends GetxController {
       }
     }
     return reslutItem;
+  }
+
+  Future getSalesPerformanceInfo() async {
+    salesPerformanceItems = await finalReportService.getSalesPerformanceInfo(type:salesPerformanceTab);
+    update(["sales_performance"]);
+  }
+  Future updateSalesPerformanceTab({required int type}) async {
+    salesPerformanceTab = type;
+    await getSalesPerformanceInfo();
   }
 }

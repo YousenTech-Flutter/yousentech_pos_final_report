@@ -702,13 +702,13 @@ Future<List> getSalesPerformanceInfo({int type = 2}) async {
   if (type == 0) {
     query = '''
       WITH RECURSIVE days(d, name) AS (
-        SELECT 0, 'Sunday' UNION ALL
-        SELECT 1, 'Monday' UNION ALL
-        SELECT 2, 'Tuesday' UNION ALL
-        SELECT 3, 'Wednesday' UNION ALL
-        SELECT 4, 'Thursday' UNION ALL
-        SELECT 5, 'Friday' UNION ALL
-        SELECT 6, 'Saturday'
+        SELECT 0, 'Sun' UNION ALL
+        SELECT 1, 'Mon' UNION ALL
+        SELECT 2, 'Tue' UNION ALL
+        SELECT 3, 'Wed' UNION ALL
+        SELECT 4, 'Thu' UNION ALL
+        SELECT 5, 'Fri' UNION ALL
+        SELECT 6, 'Sat'
       )
       SELECT 
         days.name AS name,
@@ -723,18 +723,18 @@ Future<List> getSalesPerformanceInfo({int type = 2}) async {
   } else if (type == 1) {
     query = '''
       WITH RECURSIVE months(m, name) AS (
-        SELECT 1,  'January' UNION ALL
-        SELECT 2,  'February' UNION ALL
-        SELECT 3,  'March' UNION ALL
-        SELECT 4,  'April' UNION ALL
+        SELECT 1,  'Jan' UNION ALL
+        SELECT 2,  'Feb' UNION ALL
+        SELECT 3,  'Mar' UNION ALL
+        SELECT 4,  'Apr' UNION ALL
         SELECT 5,  'May' UNION ALL
-        SELECT 6,  'June' UNION ALL
-        SELECT 7,  'July' UNION ALL
-        SELECT 8,  'August' UNION ALL
-        SELECT 9,  'September' UNION ALL
-        SELECT 10, 'October' UNION ALL
-        SELECT 11, 'November' UNION ALL
-        SELECT 12, 'December'
+        SELECT 6,  'Jun' UNION ALL
+        SELECT 7,  'Jul' UNION ALL
+        SELECT 8,  'Aug' UNION ALL
+        SELECT 9,  'Sep' UNION ALL
+        SELECT 10, 'Oct' UNION ALL
+        SELECT 11, 'Nov' UNION ALL
+        SELECT 12, 'Dec'
       )
       SELECT 
         months.name AS name,

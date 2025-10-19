@@ -776,7 +776,8 @@ Future<List> getSalesPerformanceInfo({int type = 2}) async {
             ON saleorderinvoice.id == saleorderline.order_id
           INNER JOIN product 
             ON saleorderline.product_id == product.product_id
-          WHERE session_number = ${"$ssessionID"}  
+          WHERE session_number = ${"$ssessionID"}
+          GROUP BY product.product_id, product.product_name  
           ORDER BY total_qty DESC 
         ''');
       return results;

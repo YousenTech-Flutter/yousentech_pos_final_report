@@ -346,7 +346,7 @@ class FinalReportController extends GetxController {
     final PdfPageFormat pdfFormat =
         printingInvoiceController.getFormatByName(formatName: format);
     final pdfDirectory =
-      await  printingInvoiceController.pdfCreatDirectory('PDF Session Report');
+        await printingInvoiceController.pdfCreatDirectory('PDF Session Report');
     buildPDFLayout(format: pdfFormat);
     Random random = Random();
     var randomnum = 1000 + random.nextInt(9000);
@@ -452,21 +452,32 @@ class FinalReportController extends GetxController {
   }
 
   Future getSalesPerformanceInfo() async {
-    salesPerformanceItems = await finalReportService.getSalesPerformanceInfo(type:salesPerformanceTab);
+    salesPerformanceItems = await finalReportService.getSalesPerformanceInfo(
+        type: salesPerformanceTab);
     update(["sales_performance"]);
   }
+
   Future updateSalesPerformanceTab({required int type}) async {
     salesPerformanceTab = type;
     await getSalesPerformanceInfo();
   }
 
-
-  
   Future<ResponseResult> getReportDetailedByProduct({int? ssessionID}) async {
-      var results = await finalReportService.getReportDetailedByProduct(ssessionID: ssessionID);
-      if( results is List){
-        return ResponseResult(status: true , data: results); 
-      }
-      return ResponseResult(status: false , message: results); 
+    var results = await finalReportService.getReportDetailedByProduct(
+        ssessionID: ssessionID);
+    if (results is List) {
+      return ResponseResult(status: true, data: results);
+    }
+    return ResponseResult(status: false, message: results);
+  }
+
+  Future<ResponseResult> getReportDetailedByProductForRemot(
+      {int? ssessionID}) async {
+    var results = await finalReportService.getReportDetailedByProductForRemot(
+        ssessionID: ssessionID);
+    if (results is List) {
+      return ResponseResult(status: true, data: results);
+    }
+    return ResponseResult(status: false, message: results);
   }
 }

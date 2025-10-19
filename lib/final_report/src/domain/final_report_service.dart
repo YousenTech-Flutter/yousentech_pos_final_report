@@ -789,6 +789,21 @@ Future<List> getSalesPerformanceInfo({int type = 2}) async {
     }
   }
 
-
+  Future<dynamic> getReportDetailedByProductForRemot({int? ssessionID}) async {
+    try {
+      var result = await OdooProjectOwnerConnectionHelper.odooClient.callKw({
+        'model': OdooModels.posSessionReportTransit,
+        'method': 'get_report_detailed_by_product',
+        'args': [ssessionID],
+        'kwargs': {},
+      });
+      return result;
+    } catch (e) {
+      return await handleException(
+          exception: e,
+          navigation: true,
+          methodName: "getReportDetailedByProductForRemot");
+    }
+  }
 
 }

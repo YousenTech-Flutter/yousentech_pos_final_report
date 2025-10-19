@@ -459,4 +459,14 @@ class FinalReportController extends GetxController {
     salesPerformanceTab = type;
     await getSalesPerformanceInfo();
   }
+
+
+  
+  Future<ResponseResult> getReportDetailedByProduct({int? ssessionID}) async {
+      var results = await finalReportService.getReportDetailedByProduct(ssessionID: ssessionID);
+      if( results is List){
+        return ResponseResult(status: true , data: results); 
+      }
+      return ResponseResult(status: false , message: results); 
+  }
 }

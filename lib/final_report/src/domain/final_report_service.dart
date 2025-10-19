@@ -760,4 +760,34 @@ Future<List> getSalesPerformanceInfo({int type = 2}) async {
 
 }
 
+  Future<dynamic> getReportDetailedByProduct({int? ssessionID}) async {
+    try {
+      var results = await DbHelper.db!.rawQuery('''
+          SELECT 
+            product.product_name, 
+            product.product_id, 
+            SUM(saleorderline.product_uom_qty) AS total_qty, 
+            SUM(saleorderline.total_price) AS total_price, 
+            SUM(saleorderline.total_discount) AS total_discount, 
+            SUM(saleorderline.total_price_subtotal) AS total_price_subtotal,
+            SUM(saleorderline.tax) AS tax  
+          FROM saleorderinvoice
+          INNER JOIN saleorderline 
+            ON saleorderinvoice.id == saleorderline.order_id
+          INNER JOIN product 
+            ON saleorderline.product_id == product.product_id
+          WHERE session_number = ${"$ssessionID"}  
+          ORDER BY total_qty DESC 
+        ''');
+      return results;
+    } catch (e) {
+      return await handleException(
+          exception: e,
+          navigation: true,
+          methodName: "getReportDetailedByProduct");
+    }
+  }
+
+
+
 }

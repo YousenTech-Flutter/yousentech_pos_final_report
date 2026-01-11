@@ -301,7 +301,6 @@ class FinalReportService extends FinalReportRepository {
      WHERE saleorderinvoice.session_number =   ${isSessionList ? "$id" : "${SharedPr.currentSaleSession?.id}  AND ${formattedDate(filterKey: dateFilterKey, dateField: 'saleorderinvoice.create_date')} = $dateFilter"}        
       ''');
       if (!isSportJsonExtract) {
-        print("!isSportJsonExtract");
         results2 = await fetchInvoicePaymentOptions(
             id: id,
             dateFilterKey: dateFilterKey,
@@ -481,7 +480,7 @@ class FinalReportService extends FinalReportRepository {
 
       for (var product in results6) {
         var category = product['category'] as int;
-        var totalQty = product['total_qty'] as int;
+        var totalQty = product['total_qty'] as double;
 
         if (!maxQtyByCategory.containsKey(category) ||
             totalQty > maxQtyByCategory[category]!['total_qty']) {

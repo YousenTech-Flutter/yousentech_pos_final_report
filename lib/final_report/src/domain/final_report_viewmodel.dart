@@ -415,7 +415,10 @@ class FinalReportController extends GetxController {
       if (item.moveType == MoveType.out_refund.name) {
         totalPaymentMethodReturn = totalPaymentMethodReturn + item.totalAmount!;
       }
-      totalPaymentMethod = totalPaymentMethod + item.totalAmount!;
+      else{
+        totalPaymentMethod = totalPaymentMethod + item.totalAmount!;
+      }
+      
       if (ids.contains(item.id)) {
         int index = ids.indexOf(item.id!);
         reslutItem[index].totalAmount =
